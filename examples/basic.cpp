@@ -3,12 +3,10 @@
 
 #include "hive_map.hpp"
 
+#include "hmap/locations.hpp"
+#include "hmap/messages.hpp"
 
 #include <iostream>
-
-#define SENSOR_SPACE_ID 10
-#define LOCATION 10
-#define GOAL_LOCATION 1
 
 
 using std::cout;
@@ -20,28 +18,21 @@ public:
     void read(char** data, size_t len) { }
 };
 
-struct SensorSpace {
-    static hmap::SpaceId id = SENSOR_SPACE_ID;
-    unsigned char sensor;
-};
-
-typedef hmap::Node<struct SensorSpace> SensorNode;
-
 int main() {
-    SensorNode node(LOCATION, GOAL_LOCATION); // location and goal location
+    Location room(ROOM_1);
+
     SerialChannel serial_1;
     hmap::Channel* channels = {&serial_1};
-    node.set_channels(channels, 1);
+    room.set_channels(channels, 1);
 
-    cout << NODE_LOCATION_ID << endl;
+    hmap::messages::Occupancy occupancy_msg({occupied: false});
+
+    Destination& database = room.destinations(OCCUPANCY_DATABASE);
     while(1) {
         usleep(1000);
-        node.cycle();
-        node.state.sensor = 11;
-        // update if state changed
-        node.update();
+        database.publish(occupancy_msg);
+        room.cycle();
     }
-
-
+    
     exit(EXIT_SUCCESS);
 }
