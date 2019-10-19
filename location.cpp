@@ -7,8 +7,13 @@ namespace hmap {
 
 Location::~Location() {
     for(size_t i = 0; i < m_d_len; ++i) {
-
+        delete m_destinations[i];
     }
+    if(m_d_len > 0) delete [] m_destinations;
+    for(size_t i = 0; i < m_sub_len; ++i) {
+        delete m_subscribers[i];
+    }
+    if(m_sub_len > 0) delete []  m_subscribers;
 }
 
 void Location::add_channel(Channel& channel) {

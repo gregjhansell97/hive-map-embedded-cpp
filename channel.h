@@ -2,14 +2,10 @@
 #define HIVE_MAP_CPP_CHANNEL_H_
 
 #include <stddef.h>
-#include <iostream>
 
 #include "message.h"
 
 #define MSGS_RCVD_BUFFER 20
-
-using std::cout;
-using std::endl;
 
 namespace hmap {
 
