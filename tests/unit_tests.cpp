@@ -95,27 +95,28 @@ void on_occupancy_msg(void* raw_msg) {
 }
 
 int main() {
-    //PipeChannel room_1_channels[3];
-    //PipeChannel room_2_channels[2];
-    //PipeChannel room_3_channels[1];
-    //PipeChannel room_4_channels[1];
-    //PipeChannel c;
+    PipeChannel room_1_channels[3];
+    PipeChannel room_2_channels[2];
+    PipeChannel room_3_channels[1];
+    PipeChannel room_4_channels[1];
+    PipeChannel c;
 
-    //room_1_channels[0].connect(c);
-    //room_1_channels[1].connect(room_2_channels[0]);
-    //room_1_channels[2].connect(room_4_channels[0]);
-    //room_2_channels[1].connect(room_3_channels[0]);
+    room_1_channels[0].connect(c);
+    room_1_channels[1].connect(room_2_channels[0]);
+    room_1_channels[2].connect(room_4_channels[0]);
+    room_2_channels[1].connect(room_3_channels[0]);
 
-    //std::thread room_1_thread(spin, ROOM_1, room_1_channels, 2);
-    //std::thread room_2_thread(spin, ROOM_2, room_2_channels, 2);
-    //std::thread room_3_thread(spin, ROOM_3, room_3_channels, 1);
-    //std::thread room_4_thread(spin, ROOM_4, room_3_channels, 1);
+    std::thread room_1_thread(spin, ROOM_1, room_1_channels, 2);
+    std::thread room_2_thread(spin, ROOM_2, room_2_channels, 2);
+    std::thread room_3_thread(spin, ROOM_3, room_3_channels, 1);
+    std::thread room_4_thread(spin, ROOM_4, room_3_channels, 1);
 
     hmap::Location database(OCCUPANCY_DATABASE);
     database.subscribe<OccupancyMsg>(&on_occupancy_msg);
-    //database.add_channel(c);
+    database.add_channel(c);
 
-    for(size_t i = 0; i < 1000; ++i) { //while(1) {
+    while(1) {
+        usleep(300000);
         database.cycle();
     }
     exit(EXIT_SUCCESS);
