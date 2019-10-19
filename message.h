@@ -17,22 +17,23 @@ static const Id ERROR = 2; // not sure yet lol
 
 namespace msg {
 
-typedef unsigned char Id;
+typedef unsigned char Type;
 typedef unsigned char Hash;
 
 /**
  * All messages must start with a message header named header?
  */
 struct Header {
-    Id id; // id of the message
+    Type type; // id of the message
     unsigned char bcast_radius; // required broadcast
     loc::Id destination; // destination node
     size_t size; // size of message past header
+    unsigned char hops_threshold; //
     Hash hash; // determine if message was sent already
 };
 
-struct Callback {
-    Id id; 
+struct Subscriber {
+    Type type; 
     void(*callback)(void* msg);
 };
 

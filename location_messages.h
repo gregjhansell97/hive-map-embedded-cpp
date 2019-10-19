@@ -5,13 +5,13 @@
 
 #include "message.h"
 
-#define HOPS_MSG_ID 5
+#define HOPS_MSG 5
 
 namespace hmap {
 
 struct HopsMsg {
     msg::Header header {
-        .id = HOPS_MSG_ID,
+        .type = HOPS_MSG,
         .bcast_radius = 1, // can go one hop with-out it dieing
         .destination = loc::ANY
     };
