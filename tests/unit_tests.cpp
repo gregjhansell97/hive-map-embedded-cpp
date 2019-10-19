@@ -10,27 +10,35 @@
 
 #include "hive_map.hpp"
 
-#define ROOM_1 23
-#define ROOM_2 32
+#define ROOM_1 11
+#define ROOM_2 22
+#define ROOM_3 33
+#define ROOM_4 44
 #define OCCUPANCY_DATABASE 100
 #define OCCUPANCY_MESSAGE 25
 
 using std::cout;
 using std::endl;
 
-class PipesChannel: public hmap::Channel {
+class PipeChannel: public hmap::Channel {
 public:
-    PipesChannel(int read_fd, int* write_fds, size_t len):
-            m_read_fd(read_fd),
-            m_write_fds(write_fds),
-            m_len(len) {
-        fcntl(read_fd, F_SETFL, O_NONBLOCK);
+    PipeChannel() {}
+    void connect(PipeChannel& p) {
+        int pipe_1[2];
+        int pipe_2[2];
+        pipe(pipe_1);
+        pipe(pipe_2);
+        m_read_fd = pipe_1[0];
+        p.m_write_fd = pipe_1[1];//write
+        p.m_read_fd = pipe_2[0];
+        m_write_fd = pipe_2[1];//write
+
+        fcntl(m_read_fd, F_SETFL, O_NONBLOCK);
+        fcntl(p.m_read_fd, F_SETFL, O_NONBLOCK);
     }
     unsigned long random() { return 5; } 
     void send_data(char* data, size_t len) override { 
-        for(size_t i = 0; i < m_len; ++i) {
-            write(m_write_fds[i], data, len);
-        }
+        write(m_write_fd, data, len);
     }
     size_t recv_data(char* data, size_t len) override { 
         int nread = read(m_read_fd, data, len);
@@ -41,8 +49,7 @@ public:
     }
 private:
     int m_read_fd;
-    int* m_write_fds;
-    size_t m_len;
+    int m_write_fd;
 };
 
 struct OccupancyMsg {
@@ -58,12 +65,12 @@ struct OccupancyMsg {
 
 void spin(
         const hmap::loc::Id id,
-        int read_fd, 
-        int* write_fds, 
+        PipeChannel* channels,
         const size_t len) {
-    PipesChannel channel(read_fd, write_fds, len);
     hmap::Location room(id);
-    room.add_channel(channel);
+    for(size_t i = 0; i < len; ++i) {
+        room.add_channel(channels[i]);
+    }
 
     hmap::Destination& database = room.destinations(OCCUPANCY_DATABASE);
     unsigned int publish_flag = 0;
@@ -83,44 +90,32 @@ void spin(
 
 void on_occupancy_msg(void* raw_msg) {
     OccupancyMsg* msg = static_cast<OccupancyMsg*>(raw_msg);
-    cout << msg->occupied << endl;
+    cout << (int)msg->room << ": " << msg->occupied << endl;
     // handle callback from here
 }
 
 int main() {
-    int fd_room_1[2];
-    int fd_room_2[2];
-    int fd_database[2];
-    pipe(fd_room_1);
-    pipe(fd_room_2);
-    pipe(fd_database);
+    //PipeChannel room_1_channels[3];
+    //PipeChannel room_2_channels[2];
+    //PipeChannel room_3_channels[1];
+    //PipeChannel room_4_channels[1];
+    //PipeChannel c;
 
-    int database_write_fds[1];
-    database_write_fds[0] = fd_room_1[1];
-    PipesChannel channel(fd_database[0], database_write_fds, 1);
+    //room_1_channels[0].connect(c);
+    //room_1_channels[1].connect(room_2_channels[0]);
+    //room_1_channels[2].connect(room_4_channels[0]);
+    //room_2_channels[1].connect(room_3_channels[0]);
 
-    int room_1_write_fds[2];
-    room_1_write_fds[0] = fd_database[1];
-    room_1_write_fds[1] = fd_room_2[1];
-    std::thread room_1_thread(spin, ROOM_1, fd_room_1[0], room_1_write_fds, 2);
-
-    int room_2_write_fds[1];
-    room_2_write_fds[0] = fd_room_1[1];
-    std::thread room_2_thread(spin, ROOM_2, fd_room_2[0], room_2_write_fds, 1);
-
-    //srand(time(NULL)); // random seed
-    // open all pipes
-    //
-    //
-    // spin up location nodes
-    
+    //std::thread room_1_thread(spin, ROOM_1, room_1_channels, 2);
+    //std::thread room_2_thread(spin, ROOM_2, room_2_channels, 2);
+    //std::thread room_3_thread(spin, ROOM_3, room_3_channels, 1);
+    //std::thread room_4_thread(spin, ROOM_4, room_3_channels, 1);
 
     hmap::Location database(OCCUPANCY_DATABASE);
     database.subscribe<OccupancyMsg>(&on_occupancy_msg);
-    database.add_channel(channel);
+    //database.add_channel(c);
 
-    while(1) {
-        usleep(300000);
+    for(size_t i = 0; i < 1000; ++i) { //while(1) {
         database.cycle();
     }
     exit(EXIT_SUCCESS);

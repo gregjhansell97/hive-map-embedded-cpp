@@ -15,7 +15,8 @@ public:
         m_d_len(0),
         m_chnl_len(0),
         m_sub_len(0) { };
-    
+
+    ~Location();
 
     void add_channel(Channel& channel);
 

@@ -1,13 +1,15 @@
-#include <iostream>
 #include <string.h>
 
 #include "location.h"
 #include "location_messages.h"
 
-using std::cout;
-using std::endl;
-
 namespace hmap {
+
+Location::~Location() {
+    for(size_t i = 0; i < m_d_len; ++i) {
+
+    }
+}
 
 void Location::add_channel(Channel& channel) {
     Channel** new_channels = new Channel* [m_chnl_len + 1];
@@ -89,6 +91,7 @@ void Location::update_destinations(void* data) {
             if(h->hops_away != -1 && 
                     h->hops_away + 1 < m_destinations[i]->m_hops) {
                 // if closest destination goes away, shit outa luck...
+                //if(m_id == 33) cout << "Here" << endl;
                 m_destinations[i]->m_hops = h->hops_away + 1;
             }
         }
@@ -99,9 +102,15 @@ void Location::cycle() {
     // read for data first
     msg::Header h;
     // goes through all channels and for reads info
+    // exauhstive receive
     for(size_t i = 0; i < m_chnl_len; ++i) {
         Channel& c = *m_channels[i];
-        if(c.recv_header(&h) == 0) continue; // nothing read
+        if(c.recv_header(&h) == 0) {
+            continue; // nothing read
+        } else { // something read go back to begining
+            i = -1;
+        }
+
         char* data = new char[h.size]; // allocate memory for msg size
         memcpy(data, &h, sizeof(h)); //copy over header information
         c.recv_data(data + sizeof(h), h.size - sizeof(h)); //reads rest of info

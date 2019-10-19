@@ -6,11 +6,6 @@
 #include "channel.h"
 #include "message.h"
 
-#include <iostream>
-
-using std::cout;
-using std::endl;
-
 namespace hmap {
 
 class Destination {
