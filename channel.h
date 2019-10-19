@@ -22,9 +22,9 @@ friend class Location;
 friend class Destination;
 public:
     /**
-     * Returns a random number from 0 to (2 << sizeof(msg::Hash)) - 1
+     * Returns a random unsigned long
      */
-    virtual msg::Hash random() = 0;
+    virtual unsigned long random() = 0;
 
     /**
      * Writes "len" many bytes to the channel
@@ -41,7 +41,7 @@ public:
      * data is read the return value is 0
      *
      * Args:
-     *     data(char**): pointer to an array of bytes of size "len" or higher.
+     *     data(char*): an array of bytes of size "len" or higher.
      *         the chacter array is expected to be overwritten with new
      *         information
      *     len(size_t): size of character array provided
@@ -49,9 +49,10 @@ public:
      * Returns:
      *     (size_t): number of bytes read (at most len)
      */
-    virtual size_t read(char** data, const size_t len) = 0;
+    virtual size_t read(char* data, const size_t len) = 0;
 private:
     void write(msg::Header* h);
+    size_t read(msg::Header* h);
     void cycle();
 
     // received buffer (drops already received messages)

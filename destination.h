@@ -14,7 +14,7 @@ public:
     Destination(
             const loc::Id id,
             unsigned char hops,
-            Channel* channels,
+            Channel** channels,
             size_t c_len):
         m_id(id),
         m_hops(hops),
@@ -34,14 +34,14 @@ public:
         header->destination = m_id;
         header->size = sizeof(message);
         for(size_t i = 0; i < m_c_len; ++i) {
-            m_channels[i].write(header);
+            m_channels[i]->write(header);
         }
     }
 
 private:
     const loc::Id m_id;
     unsigned char m_hops;
-    Channel* m_channels;
+    Channel** m_channels;
     size_t m_c_len;
 };
 

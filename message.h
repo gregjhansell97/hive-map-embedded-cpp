@@ -25,10 +25,15 @@ typedef unsigned char Hash;
  */
 struct Header {
     Id id; // id of the message
-    loc::Id destination; // destination node
     unsigned char bcast_radius; // required broadcast
+    loc::Id destination; // destination node
     size_t size; // size of message past header
     Hash hash; // determine if message was sent already
+};
+
+struct Callback {
+    Id id; 
+    void(*callback)(void* msg);
 };
 
 } //msg
