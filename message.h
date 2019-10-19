@@ -27,7 +27,7 @@ struct Header {
     Type type; // id of the message
     unsigned char bcast_radius; // required broadcast
     loc::Id destination; // destination node
-    size_t size; // size of message past header
+    unsigned char size; // size of message past header
     unsigned char hops_threshold; //
     Hash hash; // determine if message was sent already
 };

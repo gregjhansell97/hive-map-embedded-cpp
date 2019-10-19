@@ -2,10 +2,14 @@
 #define HIVE_MAP_CPP_CHANNEL_H_
 
 #include <stddef.h>
+#include <iostream>
 
 #include "message.h"
 
 #define MSGS_RCVD_BUFFER 20
+
+using std::cout;
+using std::endl;
 
 namespace hmap {
 
@@ -33,7 +37,7 @@ public:
      *     data(char*): array of bytes being written
      *     len(size_t): potential size of character array
      */
-    virtual void write(char* data, size_t len) = 0;
+    virtual void send_data(char* data, size_t len) = 0;
 
     /**
      * Corresponding read to write function. A pointer to a pre-allocated array
@@ -49,10 +53,10 @@ public:
      * Returns:
      *     (size_t): number of bytes read (at most len)
      */
-    virtual size_t read(char* data, const size_t len) = 0;
+    virtual size_t recv_data(char* data, const size_t len) = 0;
 private:
-    void write(msg::Header* h);
-    size_t read(msg::Header* h);
+    void send_msg(msg::Header* msg);
+    size_t recv_header(msg::Header* h);
     void cycle();
 
     // received buffer (drops already received messages)

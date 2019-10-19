@@ -1,7 +1,11 @@
+#include <iostream>
 #include <string.h>
 
 #include "location.h"
 #include "location_messages.h"
+
+using std::cout;
+using std::endl;
 
 namespace hmap {
 
@@ -10,7 +14,7 @@ void Location::add_channel(Channel& channel) {
     for(size_t i = 0; i < m_chnl_len; ++i) {
         new_channels[i] = m_channels[i]; // move over channels to new memory
     }
-    delete [] m_channels;
+    if(m_chnl_len > 0) delete [] m_channels;
     m_channels = new_channels;
     
     m_channels[m_chnl_len] = &channel;
@@ -19,6 +23,7 @@ void Location::add_channel(Channel& channel) {
     // need to go through destinations an update length for destination
     for(size_t i = 0; i < m_d_len; ++i) {
         m_destinations[i]->m_c_len = m_chnl_len;
+        m_destinations[i]->m_channels = m_channels;
     }
 }
 
@@ -32,11 +37,12 @@ Destination& Location::destinations(const loc::Id id) {
     for(size_t i = 0; i < m_d_len; ++i) {
         new_destinations[i] = m_destinations[i];
     }
-    delete [] m_destinations;
+    if(m_d_len > 0) delete [] m_destinations;
     m_destinations = new_destinations;
 
     m_destinations[m_d_len] = new Destination(id, -1, m_channels, m_chnl_len);
     ++m_d_len;
+    return *m_destinations[m_d_len - 1];
 }
 
 void Location::deliver(void* data) {
@@ -72,7 +78,7 @@ void Location::broadcast(void* data) {
     // send over all channels
     for(size_t j = 0; j < m_chnl_len; ++j) {
         Channel& c = *m_channels[j];
-        c.write(static_cast<char*>(data), h->size);
+        c.send_data(static_cast<char*>(data), h->size);
     }
 }
 
@@ -80,7 +86,8 @@ void Location::update_destinations(void* data) {
     HopsMsg* h = static_cast<HopsMsg*>(data); // cast to hops message 
     for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
         if(m_destinations[i]->m_id == h->loc) { // hops to destination
-            if(h->hops_away < m_destinations[i]->m_hops) {
+            if(h->hops_away != -1 && 
+                    h->hops_away + 1 < m_destinations[i]->m_hops) {
                 // if closest destination goes away, shit outa luck...
                 m_destinations[i]->m_hops = h->hops_away + 1;
             }
@@ -94,19 +101,39 @@ void Location::cycle() {
     // goes through all channels and for reads info
     for(size_t i = 0; i < m_chnl_len; ++i) {
         Channel& c = *m_channels[i];
-        if(c.read(&h) == 0) continue; // nothing read
+        if(c.recv_header(&h) == 0) continue; // nothing read
         char* data = new char[h.size]; // allocate memory for msg size
         memcpy(data, &h, sizeof(h)); //copy over header information
-        c.read(data + sizeof(h), h.size - sizeof(h)); //reads rest of info
+        c.recv_data(data + sizeof(h), h.size - sizeof(h)); //reads rest of info
         // now has all info needed
         if(h.type == HOPS_MSG) {
             update_destinations(data); // changes hops table
-        } else if(h.destination == m_id) { // right location to deliver message
+        } else if(h.destination == m_id || 
+                m_id == loc::ANY) { // right location to deliver message
             deliver(data);
         } else {
             broadcast(data); // not right location send to other locatoins
         }
         delete [] data; // no memory leaks
+    }
+    // publishes hops messages
+    HopsMsg msg;
+    msg.loc = m_id;
+    msg.hops_away = 0;
+    for(size_t j = 0; j < m_chnl_len; ++j) {
+        Channel& c = *m_channels[j];
+        c.send_data(
+            static_cast<char*>(static_cast<void*>(&msg)), sizeof(HopsMsg));
+    }
+    for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
+        Destination& d = *m_destinations[i];
+        msg.loc = d.m_id;
+        msg.hops_away = d.m_hops;
+        for(size_t j = 0; j < m_chnl_len; ++j) {
+            Channel& c = *m_channels[j];
+            c.send_data(
+                static_cast<char*>(static_cast<void*>(&msg)), sizeof(HopsMsg));
+        }
     }
 
 }

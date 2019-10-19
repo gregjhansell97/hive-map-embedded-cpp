@@ -11,10 +11,10 @@ namespace hmap {
 class Location {
 public:
     Location(const loc::Id id):
+        m_id(id),
         m_d_len(0),
         m_chnl_len(0),
-        m_sub_len(0),
-        m_id(id) { };
+        m_sub_len(0) { };
     
 
     void add_channel(Channel& channel);
@@ -28,9 +28,10 @@ public:
         for(size_t i = 0; i < m_sub_len; ++i) {
             subs[i] = m_subscribers[i]; // copy over old subscriptions
         }
-        delete [] m_subscribers; // frees old
+        if(m_sub_len > 0) delete [] m_subscribers; // frees old
         m_subscribers = subs;
         
+        m_subscribers[m_sub_len] = new msg::Subscriber;
         m_subscribers[m_sub_len]->type = msg_type;
         m_subscribers[m_sub_len]->callback = cb;
         ++m_sub_len;

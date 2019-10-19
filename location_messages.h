@@ -13,10 +13,11 @@ struct HopsMsg {
     msg::Header header {
         .type = HOPS_MSG,
         .bcast_radius = 1, // can go one hop with-out it dieing
-        .destination = loc::ANY
+        .destination = loc::ANY,
+        .size = sizeof(HopsMsg)
     };
-    const loc::Id loc; 
-    const unsigned char hops_away; // 
+    loc::Id loc; 
+    unsigned char hops_away; // 
 }; // should be able to send
 
 }

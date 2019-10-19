@@ -6,6 +6,11 @@
 #include "channel.h"
 #include "message.h"
 
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
 namespace hmap {
 
 class Destination {
@@ -29,14 +34,14 @@ public:
      *         message will be published
      */
     template<typename T>
-    void publish(T& message) {
-        msg::Header* msg = (msg::Header*)(&message);
+    void publish(T& msg) {
         // set up meta data to send
-        msg->destination = m_id;
-        msg->size = sizeof(message);
-        msg->hops_threshold = m_hops - 1;
+        msg.header.destination = m_id;
+        msg.header.size = sizeof(T);
+        msg.header.hops_threshold = m_hops - 1;
         for(size_t i = 0; i < m_c_len; ++i) {
-            m_channels[i]->write(msg);
+            m_channels[i]->send_data(
+                    static_cast<char*>(static_cast<void*>(&msg)), sizeof(T));
         }
     }
 
