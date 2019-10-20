@@ -2,17 +2,18 @@
 
 namespace hmap {
 
-
-void Channel::send_msg(msg::Header* h) {
-    this->send_data(static_cast<char*>(static_cast<void*>(h)), h->size);
-}
-
-size_t Channel::recv_header(msg::Header* h) {
-    return this->recv_data(
-            static_cast<char*>(static_cast<void*>(h)), sizeof(msg::Header));
-    // look at header and if its on ringbuffer already suck in rest of message
-    // and return 0, otherwise return size
-}
-
+    bool Channel::is_prior_msg(msg::Hash h) {
+        for(size_t i = 0; i < m_msgs_rcvd_len; ++i) {
+            if(h == m_msgs_rcvd[MSGS_RCVD_BUFFER]) {
+                return true;
+            }
+        }
+        m_msgs_rcvd[front] = h;
+        if(m_msgs_rcvd_len < MSGS_RCVD_BUFFER) {
+            m_msgs_rcvd_len = m_msgs_rcvd_len + 1;
+        }
+        front = (front + 1)%m_msgs_rcvd_len;
+        return false;
+    }
 
 } // hmap

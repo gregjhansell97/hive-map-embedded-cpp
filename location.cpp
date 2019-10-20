@@ -3,10 +3,6 @@
 #include "location.h"
 #include "location_messages.h"
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 namespace hmap {
 
 
@@ -101,9 +97,6 @@ void Location::update_destinations(void* data) {
     for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
         // go through destinations
         Destination& d = *m_destinations[i];
-        if(m_id == 33) {
-            cout << (int)m_id << ": " << (int)d.m_id << "-" << (int)d.m_hops << endl;
-        }
         if(d.m_id == h_msg.loc) { // hops to destination (.loc_id?
             if(h_msg.hops_away != -1 && 
                     h_msg.hops_away + 1 < d.m_hops) {
@@ -118,12 +111,15 @@ void Location::cycle() {
     // goes through all channels and for reads info
     // exauhstive receive
     char* data = new char[hmap::msg::max_size];
+    bool restart = false;
     for(size_t i = 0; i < m_chnl_len; ++i) {
         data[0] = msg::NONE; // if doesn't change, no message read
         Channel& c = *m_channels[i];
         c.recv_data(data, hmap::msg::max_size);
         if((unsigned char)data[0] == msg::NONE) { // leading index is id
             continue; // nothing read
+        } else {
+            restart = true;
         }
         msg::Header& meta = *static_cast<msg::Header*>(
                 static_cast<void*>(data));
@@ -136,6 +132,9 @@ void Location::cycle() {
             deliver(data);
         } else {
             broadcast(data); // not right location send to other locatoins
+        }
+        if(i == m_chnl_len - 1 && restart) {
+            i = 0;
         }
     }
     delete [] data; // no memory leaks

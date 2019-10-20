@@ -36,7 +36,9 @@ public:
         fcntl(m_read_fd, F_SETFL, O_NONBLOCK);
         fcntl(p.m_read_fd, F_SETFL, O_NONBLOCK);
     }
-    unsigned long random() { return 5; } 
+    unsigned char random() override { 
+        return (unsigned char)(rand()%255);
+    } 
     void send_data(char* data, size_t len) override { 
         write(m_write_fd, data, len);
     }
@@ -91,11 +93,13 @@ void spin(
 
 void on_occupancy_msg(void* raw_msg) {
     OccupancyMsg* msg = static_cast<OccupancyMsg*>(raw_msg);
-    //cout << (int)msg->room << ": " << msg->occupied << endl;
+    cout << (int)msg->room << ": " << msg->occupied << endl;
     // handle callback from here
 }
 
 int main() {
+    srand(time(NULL));
+
     PipeChannel room_1_channels[3];
     PipeChannel room_2_channels[2];
     PipeChannel room_3_channels[1];

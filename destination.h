@@ -33,7 +33,10 @@ public:
         // set up meta data to send
         msg.header.destination = m_id;
         msg.header.size = sizeof(T);
-        msg.header.hops_threshold = m_hops - 1;
+        msg.header.hops_threshold = m_hops;
+        if(m_c_len > 0) {
+            msg.header.hash = m_channels[0]->random();
+        }
         for(size_t i = 0; i < m_c_len; ++i) {
             m_channels[i]->send_data(
                     static_cast<char*>(static_cast<void*>(&msg)), sizeof(T));

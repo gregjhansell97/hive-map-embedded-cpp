@@ -22,9 +22,9 @@ friend class Location;
 friend class Destination;
 public:
     /**
-     * Returns a random unsigned long
+     * Returns a random number between 0 and 255
      */
-    virtual unsigned long random() = 0;
+    virtual unsigned char random() = 0;
 
     /**
      * Writes "len" many bytes to the channel
@@ -50,14 +50,13 @@ public:
      *     (size_t): number of bytes read (at most len)
      */
     virtual size_t recv_data(char* data, const size_t len) = 0;
-private:
-    void send_msg(msg::Header* msg);
-    size_t recv_header(msg::Header* h);
-    void cycle();
 
+    bool is_prior_msg(msg::Hash h);
+private:
     // received buffer (drops already received messages)
     msg::Hash m_msgs_rcvd[MSGS_RCVD_BUFFER];
-    unsigned char m_msgs_rcvd_len; 
+    unsigned char m_msgs_rcvd_len = 0; 
+    unsigned char front = 0;
 };
 
 }
