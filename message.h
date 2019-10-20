@@ -20,6 +20,10 @@ namespace msg {
 typedef unsigned char Type;
 typedef unsigned char Hash;
 
+static unsigned int max_size = 255;
+
+static const Type NONE = 0;
+
 /**
  * All messages must start with a message header named header?
  */

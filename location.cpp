@@ -3,6 +3,10 @@
 #include "location.h"
 #include "location_messages.h"
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 namespace hmap {
 
 
@@ -55,103 +59,111 @@ Destination& Location::destinations(const loc::Id id) {
 }
 
 void Location::deliver(void* data) {
-    msg::Header* h = static_cast<msg::Header*>(data);
+    msg::Header& meta = *static_cast<msg::Header*>(data);
     // goes through all callbacks
     for(size_t i = 0; i < m_sub_len; ++i) {
         msg::Subscriber& s = *m_subscribers[i];
-        if(s.type == h->type) { // matches subscription
+        if(s.type == meta.type) { // matches subscription
             (*s.callback)(static_cast<char*>(data));
         }
     }
 }
 
 void Location::broadcast(void* data) {
-    msg::Header* h = static_cast<msg::Header*>(data); // get header info
+    msg::Header& h_msg = *static_cast<msg::Header*>(data); // get header info
     bool match = false;// look for destination match, and closer
     for(size_t i = 0; i < m_d_len; ++i) {
-        // looking for matching destination thats closer than sender of msg
-        if(m_destinations[i]->m_id == h->destination && 
-                m_destinations[i]->m_hops < h->hops_threshold) {
+        Destination& d = *m_destinations[i];
+        // looking for common destination thats closer than sender of msg
+        if(d.m_id == h_msg.destination && 
+                d.m_hops < h_msg.hops_threshold) {
             // found it, adjust threshold
-            h->hops_threshold = m_destinations[i]->m_hops - 1;
+            h_msg.hops_threshold = d.m_hops - 1;
             match = true;
             break;
         }
     }
-    if(!match && h->bcast_radius == 0) {
+    if(!match && h_msg.bcast_radius == 0) {
         return; // now match and no need to broadcast
-    } else if(!match && h->bcast_radius > 0) {
+    } else if(!match && h_msg.bcast_radius > 0) {
     // not in the destination, doc off a bcast_radius
-        --h->bcast_radius;
+        --(h_msg.bcast_radius);
     }
     // send over all channels
     for(size_t j = 0; j < m_chnl_len; ++j) {
         Channel& c = *m_channels[j];
-        c.send_data(static_cast<char*>(data), h->size);
+        c.send_data(static_cast<char*>(data), h_msg.size);
     }
 }
 
 void Location::update_destinations(void* data) {
-    HopsMsg* h = static_cast<HopsMsg*>(data); // cast to hops message 
+    HopsMsg& h_msg = *static_cast<HopsMsg*>(data); // cast to hops message 
     for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
-        if(m_destinations[i]->m_id == h->loc) { // hops to destination
-            if(h->hops_away != -1 && 
-                    h->hops_away + 1 < m_destinations[i]->m_hops) {
+        // go through destinations
+        Destination& d = *m_destinations[i];
+        if(m_id == 33) {
+            cout << (int)m_id << ": " << (int)d.m_id << "-" << (int)d.m_hops << endl;
+        }
+        if(d.m_id == h_msg.loc) { // hops to destination (.loc_id?
+            if(h_msg.hops_away != -1 && 
+                    h_msg.hops_away + 1 < d.m_hops) {
                 // if closest destination goes away, shit outa luck...
-                //if(m_id == 33) cout << "Here" << endl;
-                m_destinations[i]->m_hops = h->hops_away + 1;
+                d.m_hops = h_msg.hops_away + 1;
             }
         }
     }
 }
 
 void Location::cycle() {
-    // read for data first
-    msg::Header h;
     // goes through all channels and for reads info
     // exauhstive receive
+    char* data = new char[hmap::msg::max_size];
     for(size_t i = 0; i < m_chnl_len; ++i) {
+        data[0] = msg::NONE; // if doesn't change, no message read
         Channel& c = *m_channels[i];
-        if(c.recv_header(&h) == 0) {
+        c.recv_data(data, hmap::msg::max_size);
+        if((unsigned char)data[0] == msg::NONE) { // leading index is id
             continue; // nothing read
-        } else { // something read go back to begining
-            i = -1;
         }
-
-        char* data = new char[h.size]; // allocate memory for msg size
-        memcpy(data, &h, sizeof(h)); //copy over header information
-        c.recv_data(data + sizeof(h), h.size - sizeof(h)); //reads rest of info
+        msg::Header& meta = *static_cast<msg::Header*>(
+                static_cast<void*>(data));
         // now has all info needed
-        if(h.type == HOPS_MSG) {
+        if(meta.type == HOPS_MSG) {
             update_destinations(data); // changes hops table
-        } else if(h.destination == m_id || 
-                m_id == loc::ANY) { // right location to deliver message
+        } else if(meta.destination == m_id || 
+                meta.destination == loc::ANY) { 
+            // right location to deliver message (or destination is to any)
             deliver(data);
         } else {
             broadcast(data); // not right location send to other locatoins
         }
-        delete [] data; // no memory leaks
     }
+    delete [] data; // no memory leaks
+
     // publishes hops messages
-    HopsMsg msg;
-    msg.loc = m_id;
-    msg.hops_away = 0;
-    for(size_t j = 0; j < m_chnl_len; ++j) {
-        Channel& c = *m_channels[j];
+    HopsMsg h_msg;
+    h_msg.loc = m_id;
+    h_msg.hops_away = 0;
+    for(size_t i = 0; i < m_chnl_len; ++i) {
+        // send to all channels
+        Channel& c = *m_channels[i];
         c.send_data(
-            static_cast<char*>(static_cast<void*>(&msg)), sizeof(HopsMsg));
+            static_cast<char*>(static_cast<void*>(&h_msg)), 
+            sizeof(HopsMsg));
     }
-    for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
+    for(size_t i = 0; i < m_d_len; ++i) { 
+        // go through destinations
         Destination& d = *m_destinations[i];
-        msg.loc = d.m_id;
-        msg.hops_away = d.m_hops;
+        // messages are how many hops location thinks it is from destinations
+        h_msg.loc = d.m_id;
+        h_msg.hops_away = d.m_hops;
         for(size_t j = 0; j < m_chnl_len; ++j) {
             Channel& c = *m_channels[j];
             c.send_data(
-                static_cast<char*>(static_cast<void*>(&msg)), sizeof(HopsMsg));
+                static_cast<char*>(static_cast<void*>(&h_msg)), 
+                sizeof(HopsMsg));
         }
     }
-
 }
 
 } // hmap
