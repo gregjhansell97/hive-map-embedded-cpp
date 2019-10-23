@@ -1,12 +1,12 @@
 #include <string.h>
 
 #include "location.h"
-#include "location_messages.h"
 
 namespace hmap {
 
 
 Location::~Location() {
+    /*
     for(size_t i = 0; i < m_d_len; ++i) {
         delete m_destinations[i];
     }
@@ -16,9 +16,11 @@ Location::~Location() {
     }
     if(m_sub_len > 0) delete []  m_subscribers;
     if(m_chnl_len > 0) delete [] m_channels; 
+    */
 }
 
-void Location::add_channel(Channel& channel) {
+void Location::bind(network::non_blocking::EndPoint& end_point) {
+    /*
     Channel** new_channels = new Channel* [m_chnl_len + 1];
     for(size_t i = 0; i < m_chnl_len; ++i) {
         new_channels[i] = m_channels[i]; // move over channels to new memory
@@ -34,9 +36,12 @@ void Location::add_channel(Channel& channel) {
         m_destinations[i]->m_c_len = m_chnl_len;
         m_destinations[i]->m_channels = m_channels;
     }
+    */
 }
 
 Destination& Location::destinations(const loc::Id id) {
+    return *(new Destination(id, -1, nullptr, 0));
+    /*
     for(size_t i = 0; i < m_d_len; ++i) {
         if(m_destinations[i]->m_id == id) {
             return *(m_destinations[i]);
@@ -52,9 +57,11 @@ Destination& Location::destinations(const loc::Id id) {
     m_destinations[m_d_len] = new Destination(id, -1, m_channels, m_chnl_len);
     ++m_d_len;
     return *m_destinations[m_d_len - 1];
+    */
 }
 
 void Location::deliver(void* data) {
+/*
     msg::Header& meta = *static_cast<msg::Header*>(data);
     // goes through all callbacks
     for(size_t i = 0; i < m_sub_len; ++i) {
@@ -63,9 +70,11 @@ void Location::deliver(void* data) {
             (*s.callback)(static_cast<char*>(data));
         }
     }
+*/
 }
 
 void Location::broadcast(void* data) {
+/*
     msg::Header& h_msg = *static_cast<msg::Header*>(data); // get header info
     bool match = false;// look for destination match, and closer
     for(size_t i = 0; i < m_d_len; ++i) {
@@ -90,9 +99,12 @@ void Location::broadcast(void* data) {
         Channel& c = *m_channels[j];
         c.send_data(static_cast<char*>(data), h_msg.size);
     }
+*/
 }
 
+/*
 void Location::update_destinations(void* data) {
+
     HopsMsg& h_msg = *static_cast<HopsMsg*>(data); // cast to hops message 
     for(size_t i = 0; i < m_d_len; ++i) { // go through destinations
         // go through destinations
@@ -106,8 +118,9 @@ void Location::update_destinations(void* data) {
         }
     }
 }
-
+*/
 void Location::cycle() {
+    /*
     // goes through all channels and for reads info
     // exauhstive receive
     char* data = new char[hmap::msg::max_size];
@@ -163,6 +176,7 @@ void Location::cycle() {
                 sizeof(HopsMsg));
         }
     }
+    */
 }
 
 } // hmap

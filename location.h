@@ -5,25 +5,26 @@
 
 #include "destination.h"
 #include "message.h"
+#include "end_point.h"
 
 namespace hmap {
 
 class Location {
 public:
     Location(const loc::Id id):
-        m_id(id),
-        m_d_len(0),
-        m_chnl_len(0),
-        m_sub_len(0) { };
+        id_(id),
+        d_len_(0),
+        endpoints_len_(0),
+        sub_len_(0) { };
 
     ~Location();
 
-    void add_channel(Channel& channel);
+    void bind(network::non_blocking::EndPoint& endpoint);
 
     template<typename T>
     void subscribe(void(*cb)(void* msg)) {
-        T instance; //hacky but need to get id
-        const msg::Type msg_type = instance.header.type;
+        /*
+        const msg::Type msg_type = T::type;
 
         msg::Subscriber** subs = new msg::Subscriber*[m_sub_len + 1];
         for(size_t i = 0; i < m_sub_len; ++i) {
@@ -35,30 +36,30 @@ public:
         m_subscribers[m_sub_len] = new msg::Subscriber;
         m_subscribers[m_sub_len]->type = msg_type;
         m_subscribers[m_sub_len]->callback = cb;
-        ++m_sub_len;
+        ++m_sub_len;*/
     }
 
     void deliver(void* data);
 
     void broadcast(void* data);
 
-    void update_destinations(void* data);
+    //void update_destinations(void* data);
 
     void cycle();
 
     Destination& destinations(const loc::Id id);
 
 private:
-    const loc::Id m_id;
+    const loc::Id id_;
 
-    Destination** m_destinations;
-    size_t m_d_len;
+    Destination** destinations_;
+    size_t d_len_;
 
-    Channel** m_channels;
-    size_t m_chnl_len;
+    network::non_blocking::EndPoint** endpoints_;
+    size_t endpoints_len_;
 
-    msg::Subscriber** m_subscribers;
-    size_t m_sub_len;
+    msg::Subscriber** subscribers_;
+    size_t sub_len_;
 };
 
 } // hmap

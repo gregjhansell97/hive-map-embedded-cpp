@@ -1,7 +1,7 @@
 #ifndef HIVE_MAP_CPP_HIVE_MAP_HPP_
 #define HIVE_MAP_CPP_HIVE_MAP_HPP_
 
-#include "channel.h"
+#include "end_point.h"
 #include "destination.h"
 #include "location.h"
 #include "message.h"

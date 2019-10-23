@@ -1,13 +1,17 @@
-#ifndef HIVE_MAP_CPP_CHANNEL_H_
-#define HIVE_MAP_CPP_CHANNEL_H_
+#ifndef HIVE_MAP_CPP_END_POINT_H_
+#define HIVE_MAP_CPP_END_POINT_H_
 
 #include <stddef.h>
 
 #include "message.h"
 
-#define MSGS_RCVD_BUFFER 20
+#define MSGS_RCVD_BUFFER 20;
 
 namespace hmap {
+
+namespace network {
+
+namespace non_blocking {
 
 /**
  * THOUGHTS:
@@ -17,15 +21,10 @@ namespace hmap {
  *   multithreaded
  */
 
-class Channel {
+class EndPoint {
 friend class Location;
 friend class Destination;
 public:
-    /**
-     * Returns a random number between 0 and 255
-     */
-    virtual unsigned char random() = 0;
-
     /**
      * Writes "len" many bytes to the channel
      *
@@ -33,7 +32,7 @@ public:
      *     data(char*): array of bytes being written
      *     len(size_t): potential size of character array
      */
-    virtual void send_data(char* data, size_t len) = 0;
+    virtual void broadcast(char* data, size_t len) = 0;
 
     /**
      * Corresponding read to write function. A pointer to a pre-allocated array
@@ -49,16 +48,18 @@ public:
      * Returns:
      *     (size_t): number of bytes read (at most len)
      */
-    virtual size_t recv_data(char* data, const size_t len) = 0;
-
-    bool is_prior_msg(msg::Hash h);
-private:
-    // received buffer (drops already received messages)
-    msg::Hash m_msgs_rcvd[MSGS_RCVD_BUFFER];
-    unsigned char m_msgs_rcvd_len = 0; 
-    unsigned char front = 0;
+    virtual size_t deliver(char* data, const size_t len) = 0;
 };
 
-}
+} //non_blocking
 
-#endif // HIVE_MAP_CPP_CHANNEL_H_
+namespace blocking {
+
+    //TODO create blocking endpoint
+} // blocking
+
+} //network
+
+} // hmap
+
+#endif // HIVE_MAP_CPP_END_POINT_H_

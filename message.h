@@ -20,7 +20,7 @@ namespace msg {
 typedef unsigned char Type;
 typedef unsigned char Hash;
 
-static unsigned int max_size = 255;
+//static unsigned int max_size = 255; // figure out more clever approach?
 
 static const Type NONE = 0;
 

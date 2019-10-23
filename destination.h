@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "channel.h"
+#include "end_point.h"
 #include "message.h"
 
 namespace hmap {
@@ -14,12 +14,12 @@ public:
     Destination(
             const loc::Id id,
             unsigned char hops,
-            Channel** channels,
-            size_t c_len):
-        m_id(id),
-        m_hops(hops),
-        m_channels(channels),
-        m_c_len(c_len) {};
+            network::non_blocking::EndPoint** end_points,
+            size_t e_len):
+        id_(id),
+        hops_(hops),
+        end_points_(end_points),
+        end_points_len_(e_len) {};
     
     /**
      * Publishes a message to all channels
@@ -30,6 +30,7 @@ public:
      */
     template<typename T>
     void publish(T& msg) {
+        /*
         // set up meta data to send
         msg.header.destination = m_id;
         msg.header.size = sizeof(T);
@@ -41,13 +42,14 @@ public:
             m_channels[i]->send_data(
                     static_cast<char*>(static_cast<void*>(&msg)), sizeof(T));
         }
+        */
     }
 
 private:
-    const loc::Id m_id;
-    unsigned char m_hops;
-    Channel** m_channels;
-    size_t m_c_len;
+    const loc::Id id_;
+    unsigned char hops_;
+    network::non_blocking::EndPoint** end_points_;
+    size_t end_points_len_;
 };
 
 } // hmap

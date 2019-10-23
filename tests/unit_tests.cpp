@@ -1,3 +1,6 @@
+
+#if 0
+
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -125,4 +128,10 @@ int main() {
         database.cycle();
     }
     exit(EXIT_SUCCESS);
+}
+
+#endif
+
+int main() {
+
 }
