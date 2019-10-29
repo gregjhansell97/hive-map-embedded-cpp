@@ -1,5 +1,5 @@
-#ifndef HIVE_MAP_CPP_LOCATION_H_
-#define HIVE_MAP_CPP_LOCATION_H_
+#ifndef HIVE_MAP_EMBEDDED_CPP_LOCATION_H_
+#define HIVE_MAP_EMBEDDED_CPP_LOCATION_H_
 
 #include <stddef.h>
 
@@ -7,14 +7,27 @@
 #include "message.h"
 #include "end_point.h"
 
+#define HOPS_MSG 5
+
 namespace hmap {
+
+struct HopsMsg {
+    msg::Header header {
+        .type = HOPS_MSG,
+        .bcast_radius = 1,
+        .destination = loc::ANY,
+        .size = sizeof(HopsMsg)
+    };
+    loc::Id loc;
+    unsigned char hops_away;
+};
 
 class Location {
 public:
     Location(const loc::Id id):
         id_(id),
         d_len_(0),
-        endpoints_len_(0),
+        end_points_len_(0),
         sub_len_(0) { };
 
     ~Location();
@@ -23,27 +36,27 @@ public:
 
     template<typename T>
     void subscribe(void(*cb)(void* msg)) {
-        /*
         const msg::Type msg_type = T::type;
 
-        msg::Subscriber** subs = new msg::Subscriber*[m_sub_len + 1];
-        for(size_t i = 0; i < m_sub_len; ++i) {
-            subs[i] = m_subscribers[i]; // copy over old subscriptions
+        msg::Subscriber** subs = new msg::Subscriber*[sub_len_ + 1];
+        for(size_t i = 0; i < sub_len_; ++i) {
+            subs[i] = subscribers_[i]; // copy over old subscriptions
         }
-        if(m_sub_len > 0) delete [] m_subscribers; // frees old
-        m_subscribers = subs;
+        if(sub_len_ > 0) delete [] subscribers_; // frees old
+        subscribers_ = subs;
         
-        m_subscribers[m_sub_len] = new msg::Subscriber;
-        m_subscribers[m_sub_len]->type = msg_type;
-        m_subscribers[m_sub_len]->callback = cb;
-        ++m_sub_len;*/
+        subscribers_[sub_len_] = new msg::Subscriber;
+        subscribers_[sub_len_]->type = msg_type;
+        subscribers_[sub_len_]->callback = cb;
+        ++sub_len_;
     }
 
     void deliver(void* data);
 
     void broadcast(void* data);
 
-    //void update_destinations(void* data);
+    // TODO get rid of/make improve
+    void update_destinations(void* data);
 
     void cycle();
 
@@ -55,8 +68,8 @@ private:
     Destination** destinations_;
     size_t d_len_;
 
-    network::non_blocking::EndPoint** endpoints_;
-    size_t endpoints_len_;
+    network::non_blocking::EndPoint** end_points_;
+    size_t end_points_len_;
 
     msg::Subscriber** subscribers_;
     size_t sub_len_;
@@ -64,4 +77,4 @@ private:
 
 } // hmap
 
-#endif // HIVE_MAP_CPP_LOCATION_H_
+#endif // HIVE_MAP_EMBEDDED_CPP_LOCATION_H_

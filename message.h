@@ -1,7 +1,9 @@
-#ifndef HIVE_MAP_CPP_TYPES_H_
-#define HIVE_MAP_CPP_TYPES_H_
+#ifndef HIVE_MAP_EMBEDDED_CPP_TYPES_H_
+#define HIVE_MAP_EMBEDDED_CPP_TYPES_H_
 
 #include <stddef.h>
+
+#define MAX_MESSAGE_SIZE 255
 
 namespace hmap {
 
@@ -19,6 +21,7 @@ namespace msg {
 
 typedef unsigned char Type;
 typedef unsigned char Hash;
+
 
 //static unsigned int max_size = 255; // figure out more clever approach?
 
@@ -45,4 +48,4 @@ struct Subscriber {
 
 } //hmap
 
-#endif // HIVE_MAP_CPP_TYPES_H_
+#endif // HIVE_MAP_EMBEDDED_CPP_TYPES_H_

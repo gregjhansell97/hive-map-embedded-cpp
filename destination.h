@@ -1,5 +1,5 @@
-#ifndef HIVE_MAP_CPP_DESTINATION_H_
-#define HIVE_MAP_CPP_DESTINATION_H_
+#ifndef HIVE_MAP_EMBEDDED_CPP_DESTINATION_H_
+#define HIVE_MAP_EMBEDDED_CPP_DESTINATION_H_
 
 #include <stddef.h>
 
@@ -30,19 +30,17 @@ public:
      */
     template<typename T>
     void publish(T& msg) {
-        /*
         // set up meta data to send
-        msg.header.destination = m_id;
+        msg.header.destination = id_;
         msg.header.size = sizeof(T);
-        msg.header.hops_threshold = m_hops;
-        if(m_c_len > 0) {
-            msg.header.hash = m_channels[0]->random();
+        msg.header.hops_threshold = hops_;
+        if(end_points_len_ > 0) {
+            //msg.header.hash = m_channels[0]->random();
         }
-        for(size_t i = 0; i < m_c_len; ++i) {
-            m_channels[i]->send_data(
+        for(size_t i = 0; i < end_points_len_; ++i) {
+            end_points_[i]->broadcast(
                     static_cast<char*>(static_cast<void*>(&msg)), sizeof(T));
         }
-        */
     }
 
 private:
@@ -54,4 +52,4 @@ private:
 
 } // hmap
 
-#endif // HIVE_MAP_CPP_LOCATION_H_
+#endif // HIVE_MAP_CPP_EMBEDDED_DESTINATION_H_

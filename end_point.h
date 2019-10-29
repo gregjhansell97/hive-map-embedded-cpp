@@ -1,5 +1,5 @@
-#ifndef HIVE_MAP_CPP_END_POINT_H_
-#define HIVE_MAP_CPP_END_POINT_H_
+#ifndef HIVE_MAP_EMBEDDED_CPP_END_POINT_H_
+#define HIVE_MAP_EMBEDDED_CPP_END_POINT_H_
 
 #include <stddef.h>
 

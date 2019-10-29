@@ -1,4 +1,4 @@
-
+#include "../hive_map.hpp"
 #if 0
 
 #include <assert.h>
