@@ -36,7 +36,8 @@ public:
 
     template<typename T>
     void subscribe(void(*cb)(void* msg)) {
-        const msg::Type msg_type = T::type;
+        const T _instance;
+        const msg::Type msg_type = _instance.type;
 
         msg::Subscriber** subs = new msg::Subscriber*[sub_len_ + 1];
         for(size_t i = 0; i < sub_len_; ++i) {
