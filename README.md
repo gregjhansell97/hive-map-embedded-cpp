@@ -1,3 +1,6 @@
+# OUT OF DATE (WILL BE UPDATED SOON)
+
+
 # Hive-Map-Cpp
 
 C library for [Hive-Map](https://github.com/gregjhansell97/hive-map)
